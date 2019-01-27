@@ -13,12 +13,13 @@ url1 = "https://opendata.rapid7.com/sonar.fdns_v2/2018-12-29-1546111673-fdns_cna
 query = "tesla.com"
 ##############################################
 
-#Realtime data source URL
+#Global Realtime data source URL
 url = 'https://opendata.rapid7.com/sonar.fdns_v2'
 host_url = 'https://opendata.rapid7.com'
 param = 'cname'
-#Finds the URL to required fdns file
-def get_data(url,param):
+hlist = ['']
+
+def get_data(url,param):                    #Finds the URL to required fdns file
     page_data = urllib2.urlopen(url)
     soup = BeautifulSoup(page_data,"html.parser")
     databuf = soup.find('div',attrs={"class":"table-scroll"})
@@ -57,20 +58,37 @@ def downloader(url):
 
             f.close()
             return(file_name)
-        else: exit("Exiting, Thank you")
-    print "Database already found... %s" % (file_name)
+        else: exit("\nExiting, Thank you")
+    print "\nDatabase already found... %s" % (file_name)
 
 
 def open_file(filename,query):
     with gzip.open(filename, 'r') as g:
-        print "Searching %s records, Please wait ..." % (param)
-        print "Hostname ------------------------------------ Address "
+        hlist.insert(0,query)                       # Initiaing List
+        print "\nSearching %s records, Please wait ..." % (param)
+        print "\n\n####################################### Results ############################################"
+        print "---- URL --------------------------------------------------- Record Address ----------------"
+        print "####################################### ####### ############################################ \n\n "
         for line in g:
             if query in line:
                 data = json.loads(line)
-                print "%s \t %s" %  (data['name'],data['value'])
+                hlist.append(str(data['name']))     # Adding http to all hosts and send to list
+#                print "%s \t %s" %  (data['name'],data['value'])
+                print '{:<60}{:<40}'.format(' '.join(data['name'].split()[-1:]), ' '.join(data['value'].split()[-1:]))
     g.close()
-    print "Search complete"
+    print "\n\nSearch complete..."
+
+def ping(list):
+    for item in list:
+        try:
+            r = requests.get("http://" + item)
+            print '{:<60}{:<10}'.format(' '.join(item.split()[-1:]), ' '.join(str(r.status_code).split()[-1:]))
+#            print "%s\t%d" % (item,r.status_code)
+        except requests.exceptions.RequestException as e:
+            if e:
+                print '{:<60}{:<10}'.format(' '.join(item.split()[-1:]), ' '.join('No Response or TimeOut'.split()[-1:]))
+#            print "%s\tNo Response or TimeOut" % (item)
+
 
 def stream_gzip_decompress(stream):
     dec = zlib.decompressobj(zlib.MAX_WBITS | 16 )  # offset 32 to skip the header
@@ -79,9 +97,13 @@ def stream_gzip_decompress(stream):
         if rv:
             yield rv
 
-print "Reading Settings..."
+print "\n##################################### SONARSCAN v1.0 ###################################"
+print "\nReading Settings..."
 url1 = get_data(url,param);
 print "\nSource URL -> %s" % (url1)
 local_filename = downloader(url1);
-query = raw_input("Please enter host name to search -> ")
+query = raw_input("\nPlease enter hostname to search -> ")
 open_file(test,query);
+print "\n Sending GET requests all the URLs "
+print "\n##################################### Status codes #####################################"
+ping(hlist);
