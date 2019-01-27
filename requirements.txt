@@ -1,0 +1,7 @@
+urllib2
+bs4
+requests
+gzip
+os
+json
+hurry.filesize
