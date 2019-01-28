@@ -6,6 +6,7 @@ import gzip
 from hurry.filesize import size
 import os
 import json
+import io
 
 #################################### TEST Data
 test = "2018-12-29-1546111673-fdns_cname.json.gz"
@@ -63,11 +64,12 @@ def downloader(url):
 
 
 def open_file(filename,query):
-    with gzip.open(filename, 'r') as g:
-        hlist.insert(0,query)                       # Initiaing List
+    with gzip.open(filename, 'r') as f:
+        g = io.BufferedReader(f)
+        hlist.insert(1,query)                       # Initiaing List
         print "\nSearching %s records, Please wait ..." % (param)
         print "\n\n####################################### Results ############################################"
-        print "---- URL --------------------------------------------------- Record Address ----------------"
+        print "------ URL ------------------------------------------------- Record Address ----------------"
         print "####################################### ####### ############################################ \n\n "
         for line in g:
             if query in line:
@@ -81,23 +83,26 @@ def open_file(filename,query):
 def ping(list):
     for item in list:
         try:
-            r = requests.get("http://" + item)
+            r = requests.get("http://" + item, timeout=3)
             print '{:<60}{:<10}'.format(' '.join(item.split()[-1:]), ' '.join(str(r.status_code).split()[-1:]))
-#            print "%s\t%d" % (item,r.status_code)
         except requests.exceptions.RequestException as e:
             if e:
-                print '{:<60}{:<10}'.format(' '.join(item.split()[-1:]), ' '.join('No Response or TimeOut'.split()[-1:]))
-#            print "%s\tNo Response or TimeOut" % (item)
+                print '{:<60}{:<20}'.format(' '.join(item.split()[-1:]), ' '.join('Timeout'.split()[-1:]))
+    print "\n\n\n\t\t\tExiting..."
+    exit()
 
+def pingy(h):  #Testfunction
+    try:
+        r = requests.get("http://" + h, timeout=3)
+        stat = r.status_code
+    except requests.exceptions.RequestException as e:
+        if e:
+            stat = 'No Response'
+    return(stat)
 
-def stream_gzip_decompress(stream):
-    dec = zlib.decompressobj(zlib.MAX_WBITS | 16 )  # offset 32 to skip the header
-    for chunk in stream:
-        rv = dec.decompress(chunk)
-        if rv:
-            yield rv
 
 print "\n##################################### SONARSCAN v1.0 ###################################"
+print "################################## post2steve@live.in ##################################"
 print "\nReading Settings..."
 url1 = get_data(url,param);
 print "\nSource URL -> %s" % (url1)

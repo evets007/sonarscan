@@ -5,3 +5,4 @@ gzip
 os
 json
 hurry.filesize
+io
