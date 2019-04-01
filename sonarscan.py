@@ -37,12 +37,12 @@ def downloader(url):
 
     file_name = url.split('/')[-1]
     if not os.path.isfile('./' + file_name):
-        if 'y' == raw_input("\nDatabase needs to be downloaded from Project Sonar URL, type 'y' to proceed! "):
+        if 'y' == raw_input("\nLatest Database needs to be downloaded from Rapid7's Project Sonar, type 'y' to proceed! "):
             u = urllib2.urlopen(url)
             f = open(file_name, 'wb')
             meta = u.info()
             file_size = int(meta.getheaders("Content-Length")[0])
-            print "Downloading: %s Bytes: %s" % (file_name, size(file_size))
+            print "Downloading: %s Size: %s" % (file_name, size(file_size))
 
             file_size_dl = 0
             block_sz = 8192
@@ -58,9 +58,10 @@ def downloader(url):
                 print status,
 
             f.close()
-            return(file_name)
+            return (file_name)
         else: exit("\nExiting, Thank you")
-    print "\nDatabase already found... %s" % (file_name)
+    print "\nLatest Database already found... %s" % (file_name)
+    return (file_name)
 
 
 def open_file(filename,query):
@@ -108,7 +109,7 @@ url1 = get_data(url,param);
 print "\nSource URL -> %s" % (url1)
 local_filename = downloader(url1);
 query = raw_input("\nPlease enter hostname to search -> ")
-open_file(test,query);
+open_file(local_filename,query);
 print "\n Sending GET requests all the URLs "
 print "\n##################################### Status codes #####################################"
 ping(hlist);
